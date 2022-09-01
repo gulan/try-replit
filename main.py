@@ -1,6 +1,6 @@
 from io import StringIO
 
-class open_line(object):
+class open_text(object):
     """Read ahead by one line. To the client it looks like we know the
     read will succeed before we issue it."""
     def __init__(self,name):
@@ -16,13 +16,13 @@ class open_line(object):
     def close(self):
         self.fh.close()
 
-def example():
-    fh = open_line('/etc/hosts')
-    count = 1
+def cat(path='/etc/hosts'):
+    fh = open_text(path)
+    count = 0
     while fh.more():
+        count +=1 
         line = fh.readline()[:-1]
         print ("%3.3s  %s" % (count,line))
-        count +=1 
     fh.close()
 
 """
@@ -92,18 +92,20 @@ class b_open(object):
         self.fh.close()
       
 def dedup():
-    # Parallel structure to the BNF above.
     fh = b_open(open("test.dat"))
     while fh.more_batches():
         line = fh.readline()[:-1]
         print (line)
         code,_ = line.split('|')
         while fh.more_records_in_this_batch(code):
-            fh.readline()[:-1]
+            fh.readline()[:-1]    # skip
     fh.close()
 
 if __name__ == '__main__': 
-   example()
+   cat()
+   print ('= ' *10 , 'empty')
+   cat('empty.dat')
+   print ('= ' *10 , 'ideal')
    ideal()
    print ('= ' *10 , 'dedup')
    dedup()

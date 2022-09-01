@@ -59,10 +59,9 @@ h|1
 h|2
 """
 
-def ideal():
+def ideal(fh0):
     # Parallel structure to the BNF above.
-    # fh = b_open(StringIO(batch_data))
-    fh = b_open(open("test.dat"))
+    fh = b_open(fh0)
     while fh.more_batches():
         code,weight = fh.readline()[:-1].split('|') # first rec of batch
         total = int(weight)
@@ -103,9 +102,18 @@ def dedup():
 
 if __name__ == '__main__': 
    cat()
+  
    print ('= ' *10 , 'empty')
    cat('empty.dat')
-   print ('= ' *10 , 'ideal')
-   ideal()
+ 
+   print ('= ' *10 , 'ideal stringio')
+   ideal(StringIO(batch_data))
+  
+   print ('= ' *10 , 'ideal test.dat')
+   ideal(open('test.dat'))
+  
+   print ('= ' *10 , 'ideal empty.dat')
+   ideal(open('empty.dat'))
+ 
    print ('= ' *10 , 'dedup')
    dedup()

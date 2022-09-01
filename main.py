@@ -1,10 +1,11 @@
 from io import StringIO
+import argparse
 
 class open_text(object):
     """Read ahead by one line. To the client it looks like we know the
     read will succeed before we issue it."""
-    def __init__(self,name):
-        self.fh = open(name)
+    def __init__(self,fh):
+        self.fh = fh
         self.buf = self.fh.readline()
     def more(self):
         return self.buf != ''
@@ -16,8 +17,8 @@ class open_text(object):
     def close(self):
         self.fh.close()
 
-def cat(path='/etc/hosts'):
-    fh = open_text(path)
+def cat(fh0):
+    fh = open_text(fh0)
     count = 0
     while fh.more():
         count +=1 
@@ -34,9 +35,10 @@ Consider a file of records described by,
   seperator := '|'
      weight := integer
 
-The file is sorted on the code, so that we have batches of weights.
-We want to sumerize the weight per batch.
-With the problem in mind, a better description of the input file is
+The file is sorted on the code, so that we have batches of weights. We
+want to sumerize the weight per batch.
+
+With this problem in mind, a better description of the input file is
 
            file := batch*
           batch := head-record ; more-record
@@ -48,7 +50,9 @@ With the problem in mind, a better description of the input file is
          weight := integer
 
 A file is an iteration of batches and a batch is an iteration records.
-A batch must have at least one record, because otherwise we would have no code to recognise it.
+
+A batch must have at least one record, because otherwise we would have
+no code to recognise it.
 """
 
 batch_data = """a|10
@@ -71,7 +75,8 @@ def ideal(fh0):
         print ("%s|%s" % (code,total))
     fh.close()
 
-""" Now we need to invent the class that makes this ideal possible."""
+""" Now we need to invent the class that makes this ideal function
+possible."""
 
 class b_open(object):
     def __init__(self,fh):
@@ -90,8 +95,8 @@ class b_open(object):
     def close(self):
         self.fh.close()
       
-def dedup():
-    fh = b_open(open("test.dat"))
+def dedup(fh0):
+    fh = b_open(fh0)
     while fh.more_batches():
         line = fh.readline()[:-1]
         print (line)
@@ -100,11 +105,11 @@ def dedup():
             fh.readline()[:-1]    # skip
     fh.close()
 
-if __name__ == '__main__': 
-   cat()
+def demos(dummy): 
+   cat(open('/etc/hosts'))
   
    print ('= ' *10 , 'empty')
-   cat('empty.dat')
+   cat(open('empty.dat'))
  
    print ('= ' *10 , 'ideal stringio')
    ideal(StringIO(batch_data))
@@ -116,4 +121,30 @@ if __name__ == '__main__':
    ideal(open('empty.dat'))
  
    print ('= ' *10 , 'dedup')
-   dedup()
+   dedup(open('test.dat'))
+
+if __name__ == '__main__': 
+   parser = argparse.ArgumentParser(description='file utilities')
+   # parser.add_argument('--demo', action='store_true', help='run built-in demos')
+   subparsers = parser.add_subparsers(help='sub-command help')
+   
+   parser_a = subparsers.add_parser('cat', help='copy file to stdout')
+   parser_a.add_argument('path', help='cat help')
+   parser_a.set_defaults(func=cat)
+
+   parser_b = subparsers.add_parser('ideal', help='ideal help')
+   parser_b.add_argument('path', help='ideal help')
+   parser_b.set_defaults(func=ideal)
+
+   parser_c = subparsers.add_parser('dedup', help='dedup help')
+   parser_c.add_argument('path', help='path to input file')
+   parser_c.set_defaults(func=dedup)
+
+   parser_d = subparsers.add_parser('demo', help='run built-in demos')
+   parser_d.set_defaults(func=demos, demo='demo')
+
+   pd = parser.parse_args()
+   if 'demo' in pd.__dict__:
+       pd.func(demos)
+   else:
+       pd.func(open(pd.path))

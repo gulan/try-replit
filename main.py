@@ -29,7 +29,7 @@ def cat(path='/etc/hosts'):
 Consider a file of records described by,
 
        file := record*
-     record := code seperator weight
+     record := code separator weight
        code := a..z
   seperator := '|'
      weight := integer
@@ -42,7 +42,7 @@ With the problem in mind, a better description of the input file is
           batch := head-record ; more-record
     head-record := record
     more-record := record*
-         record := code seperator weight
+         record := code separator weight
            code := a..z
       seperator := '|'
          weight := integer
